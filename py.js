@@ -85,7 +85,46 @@ function helper() {
     drawCircle(ball.x, ball.y, ball.radius, ball.width, ball.height, ball.color)
 }
 
+function updates(){
+    if(ball.x - ball.radius < 0){
+        cpu.score++;
+        restart();
+    }else if(ball.x + ball.radius > canvas.width){
+        user.score++;
+        restart();
+    }
+    ball.x += ball.vel_in_x_dir;
+    ball.y += ball.vel_in_y_dir;
+
+    cpu_movement();
+
+    //If the ball touches the top and the bottom
+    if(ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height){
+        ball.vel_in_y_dir = -ball.vel_in_y_dir;
+    }
+
+    let player = (ball.x  +  ball.radius < canvas.width/2) ? user : cpu;
+
+    if (detect_collision(ball, player)){
+        //checking where the ball hits the paddle
+        let collidePoint = (ball.y - (player.y + player.height/2));
+
+        collidePoint = collidePoint / (player.height/2);
+
+        //Math.PI/4 = 45 degrees
+        let angleRad = (Math.PI/4) * collidePoint;
+        
+        //change the x and y velocity direction
+        // let direction = (ball.x + ball.radius < canvas.width)
+        // ball.vel_in_x_dir = direction * ball.speed * Math.cos(angleRad)
+        // ball.vel_in_y_dir = ball.speed * Math.sin(angleRad);
+
+        // ball.speed+=1;
+    }
+}
+
 function call_back(){
+    updates();
     helper();
 }
 
@@ -100,14 +139,7 @@ function restart() {
     ball.speed = 5;
 }
 
-canvas.addEventListener("mousemove", getMousePos);
-
-function getMousePos(evt){
-    let rect = can.getBoundingClientRect();
-    user.y = evt.clientY - rect.top - user.height/2;
-}
-
-function detect_collsion(ball, player){
+function detect_collision(ball, player){
     player.top = player.y;
     player.bottom = player.y + player.height;
     player.left = player.x;
@@ -117,6 +149,26 @@ function detect_collsion(ball, player){
     ball.bottom  = ball.y + ball.radius;
     ball.left = ball.x - ball.radius;
     ball.right = ball.x + ball.radius;
+
+    return player.left < ball.right && player.top < ball.bottom && player.right > ball.left && player.bottom > ball.top; 
+    //If it returns false that means there is no collision else if it returns true that means there is a collision
+
+    /*           player.top < ball.bottom
+                         |
+                         |
+player.left < ball.right | player.right > ball.left
+                         |
+                         |
+                         |
+                player.bottom . ball.top
+    */
+}
+
+canvas.addEventListener("mousemove", getMousePos);
+
+function getMousePos(evt){
+    let rect = can.getBoundingClientRect();
+    user.y = evt.clientY - rect.top - user.height/2;
 }
 
 function cpu_movement(){
@@ -126,7 +178,7 @@ function cpu_movement(){
         cpu.y -= 5;
 }
 
-//Other methods aside using the cpu_movement
+//Other methods aside using the cpu_movement i.e using AI
 Mathematics:
     cpu.y += ((ball.y - (cpu.y + cpu.height/2)));
 
