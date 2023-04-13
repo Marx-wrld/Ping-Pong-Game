@@ -42,7 +42,7 @@ const user = {
     width: 10,
     height: 100,
     score: 0,
-    color: "white"
+    color: "blue"
 }
 
 //computer paddle
@@ -52,7 +52,7 @@ const cpu = {
     width: 10,
     height: 100,
     score: 0,
-    color: "white"
+    color: "red"
 }
 
 function drawRectangle(x, y, w, h, color){
