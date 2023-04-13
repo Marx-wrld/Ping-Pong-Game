@@ -1,5 +1,5 @@
-let canvas = document.getElementById("table");
-let draw = canvas.getContext("2d")
+const canvas = document.getElementById("table");
+const draw = canvas.getContext("2d")
 
 draw.fillStyle = "red"; //used to color
 draw.fillRect(100, 100, 30, 30); 
@@ -14,6 +14,8 @@ draw.fill();
 
 //Creating objects and functions
 
+
+//ball object
 const ball = {
     x: canvas.width/2, //divide by 2 because we want the circle to be at the center
     y: canvas.height/2, 
@@ -23,7 +25,8 @@ const ball = {
     speed: 7,
     color: "green"
 }
-  
+
+//line separator
 const separator = {
     x: (canvas.width - 2)/2,
     y: 0,
@@ -32,6 +35,7 @@ const separator = {
     color: "white"
 }
 
+//user paddle
 const user = {
     x: 0,
     y: (canvas.height - 100)/2, //subtracting so that it wont go beyond the canvas
@@ -41,6 +45,7 @@ const user = {
     color: "white"
 }
 
+//computer paddle
 const cpu = {
     x: canvas.width -10,
     y: (canvas.height - 100)/2,
@@ -74,63 +79,6 @@ function drawSeparator(){
         drawRectangle(separator.x, separator.y + i, separator.width, separator.height, separator.color)
     }
 }
-
-function helper() {
-    drawRectangle(0, 0, canvas.width, canvas.height, "black");
-    drawScore(0, canvas.width/4, canvas.height/5);
-    drawScore(0, 3*canvas.width/4, canvas.height/5);
-    drawSeparator();
-    drawRectangle(user.x, user.y, user.width, user.height);
-    drawRectangle(cpu.x, cpu.y, cpu.width, cpu.height);
-    drawCircle(ball.x, ball.y, ball.radius, ball.width, ball.height, ball.color)
-}
-
-function updates(){
-    if(ball.x - ball.radius < 0){
-        cpu.score++;
-        restart();
-    }else if(ball.x + ball.radius > canvas.width){
-        user.score++;
-        restart();
-    }
-    ball.x += ball.vel_in_x_dir;
-    ball.y += ball.vel_in_y_dir;
-
-    cpu_movement();
-
-    //If the ball touches the top and the bottom
-    if(ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height){
-        ball.vel_in_y_dir = -ball.vel_in_y_dir;
-    }
-
-    let player = (ball.x  +  ball.radius < canvas.width/2) ? user : cpu;
-
-    if (detect_collision(ball, player)){
-        //checking where the ball hits the paddle
-        let collidePoint = (ball.y - (player.y + player.height/2));
-
-        collidePoint = collidePoint / (player.height/2);
-
-        //Math.PI/4 = 45 degrees
-        let angleRad = (Math.PI/4) * collidePoint;
-        
-        //change the x and y velocity direction
-        // let direction = (ball.x + ball.radius < canvas.width)
-        // ball.vel_in_x_dir = direction * ball.speed * Math.cos(angleRad)
-        // ball.vel_in_y_dir = ball.speed * Math.sin(angleRad);
-
-        // ball.speed+=1;
-    }
-}
-
-function call_back(){
-    updates();
-    helper();
-}
-
-let fps = 50;
-let looper = setInterval(call_back, 1000/fps);
-//everytime the setInterval fucntion is callled, the circle is blackened and another circle is created thus forming an illusion that the circle is moving. 
 
 function restart() {
     ball.x = canvas.width/2;
@@ -167,7 +115,7 @@ player.left < ball.right | player.right > ball.left
 canvas.addEventListener("mousemove", getMousePos);
 
 function getMousePos(evt){
-    let rect = can.getBoundingClientRect();
+    let rect = canvas.getBoundingClientRect();
     user.y = evt.clientY - rect.top - user.height/2;
 }
 
@@ -178,9 +126,72 @@ function cpu_movement(){
         cpu.y -= 5;
 }
 
+//This function does all the drawing
+function helper() {
+    drawRectangle(0, 0, canvas.width, canvas.height, "black");
+    drawScore(cpu.score, canvas.width/4, canvas.height/5);
+    drawScore(0, 3*canvas.width/4, canvas.height/5);
+    drawSeparator();
+    drawRectangle(user.x, user.y, user.width, user.height, user.color);
+    drawRectangle(cpu.x, cpu.y, cpu.width, cpu.height, cpu.color);
+    drawCircle(ball.x, ball.y, ball.radius, ball.color)
+}
+
+
+function updates(){
+    if(ball.x - ball.radius < 0){
+        cpu.score++;
+        restart();
+    }else if(ball.x + ball.radius > canvas.width){
+        user.score++;
+        restart();
+    }
+    ball.x += ball.vel_in_x_dir;
+    ball.y += ball.vel_in_y_dir;
+    
+    //computer plays for itself and we must be able to beat it
+    cpu.y += ((ball.y -(cpu.y + cpu.height/2)))*0.1;
+
+    //If the ball touches the top and the bottom
+    if(ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height){
+        ball.vel_in_y_dir = -ball.vel_in_y_dir;
+    }
+
+    let player = (ball.x  +  ball.radius < canvas.width/2) ? user : cpu;
+
+    if (detect_collision(ball, player)){
+        //checking where the ball hits the paddle
+        let collidePoint = (ball.y - (player.y + player.height/2));
+
+        collidePoint = collidePoint / (player.height/2);
+
+        //Math.PI/4 = 45 degrees
+        let angleRad = (Math.PI/4) * collidePoint;
+        
+        //change the x and y velocity direction
+        let direction = (ball.x + ball.radius < canvas.width/2) ? 1 : -1;
+        ball.vel_in_x_dir = direction * ball.speed * Math.cos(angleRad)
+        ball.vel_in_y_dir = ball.speed * Math.sin(angleRad);
+
+        ball.speed+=1;
+    }
+}
+
+function call_back(){
+    updates();
+    helper();
+}
+
+//frames per second
+let fps = 50;
+
+//calls the game function 50 times every 1 sec
+let looper = setInterval(call_back, 1000/fps);
+//everytime the setInterval fucntion is callled, the circle is blackened and another circle is created thus forming an illusion that the circle is moving. 
+
 //Other methods aside using the cpu_movement i.e using AI
 Mathematics:
-    cpu.y += ((ball.y - (cpu.y + cpu.height/2)));
+    cpu.y += ((ball.y - (cpu.y + cpu.height/2)))*0.1;
 
 Random:
     cpu.y = Math.random()* canvas.height;
