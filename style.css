@@ -1,4 +1,10 @@
 *{
     margin: 0;
+    padding-top: 30px;
+    padding-left: 90px;
     background-color: darkgrey;
+}
+
+canvas{
+    align-content: center;
 }
